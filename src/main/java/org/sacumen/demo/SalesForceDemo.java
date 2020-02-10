@@ -1,7 +1,9 @@
 package org.sacumen.demo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.impl.client.HttpClients;
 import org.sacumen.demo.dto.AuthInfoDTO;
+import org.sacumen.demo.dto.EventLogDTO;
 import org.sacumen.demo.dto.TokenDTO;
 import org.sacumen.demo.service.SalesForceClient;
 import org.springframework.boot.SpringApplication;
@@ -19,8 +21,18 @@ public class SalesForceDemo {
 
         InputStream inJson = AuthInfoDTO.class.getResourceAsStream("/auth.json");
         AuthInfoDTO authInfo = new ObjectMapper().readValue(inJson, AuthInfoDTO.class);
-        TokenDTO token = new SalesForceClient().getAccessToken(authInfo);
-        System.out.println(token.getAccessToken());
+
+        SalesForceClient salesForceClient = new SalesForceClient();
+
+        salesForceClient.setClient(HttpClients.createDefault());
+
+        TokenDTO token = salesForceClient.getAccessToken(authInfo);
+
+        EventLogDTO eventLog = salesForceClient.getEventLog(token);
+
+        salesForceClient.getEventLogFileById(token, eventLog.getRecords().get(0));
+
     }
+
 
 }

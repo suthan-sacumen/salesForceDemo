@@ -2,8 +2,6 @@ package org.sacumen.demo.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
 
 @JsonIgnoreProperties
 public class TokenDTO {
@@ -72,5 +70,17 @@ public class TokenDTO {
 
     public void setSignature(String signature) {
         this.signature = signature;
+    }
+
+    @Override
+    public String toString() {
+        return "TokenDTO{" +
+                "accessToken='" + accessToken + '\'' +
+                ", instanceUrl='" + instanceUrl + '\'' +
+                ", id='" + id + '\'' +
+                ", tokenType='" + tokenType + '\'' +
+                ", issuedAt='" + issuedAt + '\'' +
+                ", signature='" + signature + '\'' +
+                '}';
     }
 }
