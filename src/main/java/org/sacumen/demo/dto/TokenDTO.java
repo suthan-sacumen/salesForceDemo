@@ -2,6 +2,8 @@ package org.sacumen.demo.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @JsonIgnoreProperties
 public class TokenDTO {
@@ -82,5 +84,35 @@ public class TokenDTO {
                 ", issuedAt='" + issuedAt + '\'' +
                 ", signature='" + signature + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TokenDTO tokenDTO = (TokenDTO) o;
+
+        return new EqualsBuilder()
+                .append(accessToken, tokenDTO.accessToken)
+                .append(instanceUrl, tokenDTO.instanceUrl)
+                .append(id, tokenDTO.id)
+                .append(tokenType, tokenDTO.tokenType)
+                .append(issuedAt, tokenDTO.issuedAt)
+                .append(signature, tokenDTO.signature)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(accessToken)
+                .append(instanceUrl)
+                .append(id)
+                .append(tokenType)
+                .append(issuedAt)
+                .append(signature)
+                .toHashCode();
     }
 }

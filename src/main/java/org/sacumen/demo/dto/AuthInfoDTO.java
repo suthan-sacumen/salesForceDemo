@@ -1,5 +1,8 @@
 package org.sacumen.demo.dto;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class AuthInfoDTO {
 
     private String grant_type;
@@ -46,5 +49,33 @@ public class AuthInfoDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AuthInfoDTO that = (AuthInfoDTO) o;
+
+        return new EqualsBuilder()
+                .append(grant_type, that.grant_type)
+                .append(client_id, that.client_id)
+                .append(client_secret, that.client_secret)
+                .append(username, that.username)
+                .append(password, that.password)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(grant_type)
+                .append(client_id)
+                .append(client_secret)
+                .append(username)
+                .append(password)
+                .toHashCode();
     }
 }

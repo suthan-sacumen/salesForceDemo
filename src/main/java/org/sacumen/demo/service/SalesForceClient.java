@@ -1,12 +1,14 @@
 package org.sacumen.demo.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.sacumen.demo.dto.AuthInfoDTO;
 import org.sacumen.demo.dto.EventLogDTO;
@@ -14,6 +16,8 @@ import org.sacumen.demo.dto.RecordDTO;
 import org.sacumen.demo.dto.TokenDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,16 +27,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class SalesForceClient {
 
     private static final Logger log = LoggerFactory.getLogger(SalesForceClient.class);
 
-    private CloseableHttpClient client;
+    private CloseableHttpClient client = HttpClients.createDefault();
+
+    @Autowired
+    private String salesForceAppURL;
+
     private ObjectMapper mapper = new ObjectMapper();
 
     public TokenDTO getAccessToken(AuthInfoDTO authInfo) throws IOException, URISyntaxException {
 
-        URIBuilder builder = new URIBuilder("https://ap15.salesforce.com");
+        URIBuilder builder = new URIBuilder(salesForceAppURL);
         builder.setPath("/services/oauth2/token");
 
         HttpPost post = new HttpPost(builder.build());
@@ -56,7 +65,7 @@ public class SalesForceClient {
 
     public EventLogDTO getEventLog(TokenDTO token) throws IOException, URISyntaxException {
 
-        URIBuilder builder = new URIBuilder("https://ap15.salesforce.com");
+        URIBuilder builder = new URIBuilder(salesForceAppURL);
         builder.setPath("/services/data/v47.0/query");
         builder.setParameter("q", "SELECT Id , EventType from EventLogFile where EventType ='Login'");
 
@@ -75,37 +84,24 @@ public class SalesForceClient {
     public String getEventLogFileById(TokenDTO token, RecordDTO record) throws URISyntaxException, IOException {
         String eventLogFile;
 
-        URIBuilder builder = new URIBuilder("https://ap15.salesforce.com");
-        builder.setPath("/services/data/v47.0/sobjects/EventLogFile/"+record.getId()+"/LogFile");
+        URIBuilder builder = new URIBuilder(salesForceAppURL);
+        builder.setPath("/services/data/v47.0/sobjects/EventLogFile/" + record.getId() + "/LogFile");
         HttpGet get = new HttpGet(builder.build());
         get.setHeader("Authorization", "Bearer " + token.getAccessToken());
         HttpResponse queryResponse = client.execute(get);
 
-        eventLogFile = convertInputStreamToString(queryResponse.getEntity().getContent());
+        eventLogFile = IOUtils.toString(queryResponse.getEntity().getContent(), StandardCharsets.UTF_8.name());
 
         log.info("Get Events File SuccessFully {}", eventLogFile);
 
         return eventLogFile;
     }
 
-    private static String convertInputStreamToString(InputStream inputStream) throws IOException {
-
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = inputStream.read(buffer)) != -1) {
-            result.write(buffer, 0, length);
-        }
-
-        return result.toString(StandardCharsets.UTF_8.name());
-
+    public String getSalesForceAppURL() {
+        return salesForceAppURL;
     }
 
-    public CloseableHttpClient getClient() {
-        return client;
-    }
-
-    public void setClient(CloseableHttpClient client) {
-        this.client = client;
+    public void setSalesForceAppURL(String salesForceAppURL) {
+        this.salesForceAppURL = salesForceAppURL;
     }
 }
