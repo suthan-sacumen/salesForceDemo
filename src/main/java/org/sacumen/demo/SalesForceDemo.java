@@ -1,7 +1,6 @@
 package org.sacumen.demo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.impl.client.HttpClients;
 import org.sacumen.demo.dto.AuthInfoDTO;
 import org.sacumen.demo.dto.EventLogDTO;
 import org.sacumen.demo.dto.TokenDTO;
@@ -23,9 +22,9 @@ public class SalesForceDemo {
     }
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-        //SpringApplication.run(SalesForceDemo.class, args);
+        SpringApplication.run(SalesForceDemo.class, args);
 
-        InputStream inJson = AuthInfoDTO.class.getResourceAsStream("/auth.json");
+        /*InputStream inJson = SalesForceDemo.class.getResourceAsStream("/auth.json");
         AuthInfoDTO authInfo = new ObjectMapper().readValue(inJson, AuthInfoDTO.class);
 
         SalesForceClient salesForceClient = new SalesForceClient();
@@ -35,7 +34,7 @@ public class SalesForceDemo {
 
         EventLogDTO eventLog = salesForceClient.getEventLog(token);
 
-        salesForceClient.getEventLogFileById(token, eventLog.getRecords().get(0));
+        salesForceClient.getEventLogFileById(token, eventLog.getRecords().get(0));*/
 
     }
 

@@ -3,13 +3,11 @@ package org.sacumen.demo.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.sacumen.demo.dto.AuthInfoDTO;
 import org.sacumen.demo.dto.EventLogDTO;
 import org.sacumen.demo.dto.RecordDTO;
@@ -19,13 +17,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class SalesForceClient {
@@ -43,16 +37,13 @@ public class SalesForceClient {
 
         URIBuilder builder = new URIBuilder(salesForceAppURL);
         builder.setPath("/services/oauth2/token");
+        builder.setParameter("grant_type", authInfo.getGrant_type());
+        builder.setParameter("client_id", authInfo.getClient_id());
+        builder.setParameter("client_secret", authInfo.getClient_secret());
+        builder.setParameter("username", authInfo.getUsername());
+        builder.setParameter("password", authInfo.getPassword());
 
         HttpPost post = new HttpPost(builder.build());
-        List<BasicNameValuePair> urlParameters = new ArrayList<>();
-        urlParameters.add(new BasicNameValuePair("grant_type", authInfo.getGrant_type()));
-        urlParameters.add(new BasicNameValuePair("client_id", authInfo.getClient_id()));
-        urlParameters.add(new BasicNameValuePair("client_secret", authInfo.getClient_secret()));
-        urlParameters.add(new BasicNameValuePair("username", authInfo.getUsername()));
-        urlParameters.add(new BasicNameValuePair("password", authInfo.getPassword()));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
 
         HttpResponse queryResponse = client.execute(post);
 

@@ -1,22 +1,26 @@
 package org.sacumen.demo.service;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.sacumen.demo.SalesForceDemo;
 import org.sacumen.demo.dto.AuthInfoDTO;
+import org.sacumen.demo.dto.EventLogDTO;
 import org.sacumen.demo.dto.RecordDTO;
 import org.sacumen.demo.dto.TokenDTO;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.InputStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -34,10 +38,10 @@ public class SalesForceClientTest {
     );
 
     @Mock
-    private RecordDTO record;
+    private CloseableHttpResponse queryResponse;
 
     @Mock
-    private TokenDTO token;
+    private HttpEntity entity;
 
     @InjectMocks
     private SalesForceClient salesForceClient;
@@ -53,9 +57,11 @@ public class SalesForceClientTest {
     public void testErrorResponse() throws Exception {
 
         String recordID = "0AT2w00000C49E4GAJ";
+        RecordDTO record = new RecordDTO();
+        record.setId(recordID);
 
-        when(record.getId()).thenReturn(recordID);
-        when(token.getAccessToken()).thenReturn("test");
+        TokenDTO token = new TokenDTO();
+        token.setAccessToken("test");
 
         wireMockRule.stubFor(get(urlPathMatching("/services/data/v47.0/sobjects/EventLogFile/" + recordID + "/LogFile"))
                 .willReturn(aResponse().withStatus(404).withBody("error")));
@@ -77,14 +83,27 @@ public class SalesForceClientTest {
         wireMockRule.stubFor(post(urlPathMatching("/services/oauth2/token"))
                 .willReturn(aResponse().withStatus(200).withBody(shortResponse)));
 
-        InputStream inJson = AuthInfoDTO.class.getResourceAsStream("/auth.json");
-        AuthInfoDTO authInfo = new ObjectMapper().readValue(inJson, AuthInfoDTO.class);
+        AuthInfoDTO authInfo = new AuthInfoDTO();
         TokenDTO token = salesForceClient.getAccessToken(authInfo);
 
         assertEquals("access_token", "00D2w000002iBes!AQkAQKuarCasF21YGlBfgaGkgYTKWErlI7qT4EvVKX4kSN66DrFCgdijTmKoGD_C2yYTX4XnTKWjCekscUkUywIWSi_XEiei", token.getAccessToken());
 
     }
 
+
+    @Test
+    public void testgetEventLog() throws Exception {
+        CloseableHttpClient client = Mockito.mock(CloseableHttpClient.class);
+        ReflectionTestUtils.setField(salesForceClient, "client", client);
+        TokenDTO token = new TokenDTO();
+        token.setAccessToken("test");
+        when(entity.getContent()).thenReturn(SalesForceDemo.class.getResourceAsStream("/eventQuerry.json"));
+        when(queryResponse.getEntity()).thenReturn(entity);
+        when(client.execute(ArgumentMatchers.any())).thenReturn(queryResponse);
+
+        EventLogDTO eventlog = salesForceClient.getEventLog(token);
+        assertEquals("Total Size", 1, eventlog.getTotalSize());
+    }
 
 
 
