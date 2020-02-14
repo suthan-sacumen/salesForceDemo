@@ -5,15 +5,13 @@ import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.sacumen.demo.SalesForceDemo;
 import org.sacumen.demo.dto.AuthInfoDTO;
@@ -25,6 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -56,7 +55,7 @@ public class SalesForceClientTest {
     @Test
     public void testErrorResponse() throws Exception {
 
-        String recordID = "0AT2w00000C49E4GAJ";
+        String recordID = "TestrecordfileID";
         RecordDTO record = new RecordDTO();
         record.setId(recordID);
 
@@ -72,12 +71,12 @@ public class SalesForceClientTest {
     public void testResponse() throws Exception {
 
         String shortResponse = "{" +
-                "    \"access_token\": \"00D2w000002iBes!AQkAQKuarCasF21YGlBfgaGkgYTKWErlI7qT4EvVKX4kSN66DrFCgdijTmKoGD_C2yYTX4XnTKWjCekscUkUywIWSi_XEiei\"," +
+                "    \"access_token\": \"Test Token from server\"," +
                 "    \"instance_url\": \"https://ap16.salesforce.com\"," +
-                "    \"id\": \"https://login.salesforce.com/id/00D2w000002iBesEAE/0052w000001kcevAAA\"," +
+                "    \"id\": \"https://login.salesforce.com/id/\"," +
                 "    \"token_type\": \"Bearer\"," +
                 "    \"issued_at\": \"1581320198245\"," +
-                "    \"signature\": \"jJAmzIYOyBRZH4O5FUf4BXMsrfIWIb7MqRAt/RwCpwY=\"" +
+                "    \"signature\": \"TestSignature\"" +
                 "}";
 
         wireMockRule.stubFor(post(urlPathMatching("/services/oauth2/token"))
@@ -86,7 +85,7 @@ public class SalesForceClientTest {
         AuthInfoDTO authInfo = new AuthInfoDTO();
         TokenDTO token = salesForceClient.getAccessToken(authInfo);
 
-        assertEquals("access_token", "00D2w000002iBes!AQkAQKuarCasF21YGlBfgaGkgYTKWErlI7qT4EvVKX4kSN66DrFCgdijTmKoGD_C2yYTX4XnTKWjCekscUkUywIWSi_XEiei", token.getAccessToken());
+        assertEquals("access_token", "Test Token from server", token.getAccessToken());
 
     }
 
@@ -103,6 +102,12 @@ public class SalesForceClientTest {
 
         EventLogDTO eventlog = salesForceClient.getEventLog(token);
         assertEquals("Total Size", 1, eventlog.getTotalSize());
+
+        ArgumentCaptor<HttpGet> peopleCaptor = ArgumentCaptor.forClass(HttpGet.class);
+        Mockito.verify(client, times(1)).execute(peopleCaptor.capture());
+        HttpGet get = peopleCaptor.getValue();
+        assertEquals("header", "Bearer test", get.getHeaders("Authorization")[0].getValue());
+
     }
 
 
