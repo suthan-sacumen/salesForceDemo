@@ -5,9 +5,9 @@
     {
       "attributes": {
         "type": "EventLogFile",
-        "url": "/services/data/v47.0/sobjects/EventLogFile/0AT2w00000C49E4GAJ"
+        "url": "/services/data/v47.0/sobjects/EventLogFile/testfile"
       },
-      "Id": "0AT2w00000C49E4GAJ",
+      "Id": "TestFile",
       "EventType": "Login"
     }
   ]
